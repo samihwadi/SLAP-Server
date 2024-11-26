@@ -10,7 +10,7 @@ router.get('/show-courses', authMiddleware, getCourses);
 router.post('/courses', addCourses);
 
 // Route to update a course
-router.post('/update-course', updateCourse);
+router.put('/update-course', updateCourse);
 
 
 module.exports = router;

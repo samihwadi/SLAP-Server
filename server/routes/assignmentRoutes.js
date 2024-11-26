@@ -11,7 +11,7 @@ router.post('/create-assignment', createAssignment);
 router.get('/courses/:courseId/assignments', getAssignments);
 // Route to submit an assignment with file upload
 router.post('/submit', authMiddleware, upload.single('file'), submitAssignment);
-// Route to get all submissions for a specific assignment
+// Route to get logged in user submissions for a specific assignment
 router.get('/assignments/:assignmentId/submissions', authMiddleware, getSubmissions);
 
 module.exports = router;

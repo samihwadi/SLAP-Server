@@ -92,4 +92,15 @@ const getProfile = async (req, res) => {
         res.json(null)
     }
 }
-module.exports = {login, userRegister, logout, getProfile}
+// Fetch All Users
+const getAllUsers = async (req, res) => {
+    try {
+      const users = await User.find().select("-password"); // Exclude the password field
+      res.json(users);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Server error" });
+    }
+  };
+  
+module.exports = {login, userRegister, logout, getProfile, getAllUsers}

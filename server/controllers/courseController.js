@@ -97,19 +97,28 @@ const updateCourse = async (req, res) => {
                 }
             }
         }
-
         // Remove students
         if (removeStudents.length > 0) {
             const studentsToRemove = await User.find({ email: { $in: removeStudents }, role: 'student' });
-            const studentIdsToRemove = studentsToRemove.map((student) => student._id);
+            const studentIdsToRemove = studentsToRemove.map((student) => student._id.toString());
 
-            // Remove from course
-            course.students = course.students.filter((id) => !studentIdsToRemove.includes(id));
+            console.log("Students to remove:", studentsToRemove.map((s) => s.email));
+            console.log("Initial course students:", course.students.map((s) => s.toString()));
 
-            // Update each student's courses
+            // Remove students from course.students
+            course.students = course.students.filter(
+                (studentId) => !studentIdsToRemove.includes(studentId.toString())
+            );
+
+            console.log("Updated course students:", course.students.map((s) => s.toString()));
+
+            // Update each student's courses array
             for (const student of studentsToRemove) {
-                student.courses = student.courses.filter((courseId) => !courseId.equals(course._id));
+                student.courses = student.courses.filter(
+                    (courseId) => !courseId.equals(course._id)
+                );
                 await student.save();
+                console.log(`Updated courses for student: ${student.email}`, student.courses);
             }
         }
 
@@ -122,8 +131,6 @@ const updateCourse = async (req, res) => {
         res.status(500).json({ error: 'Server error' });
     }
 };
-
-
 
 module.exports = {getCourses, addCourses, updateCourse};
 

@@ -44,7 +44,6 @@ const requestPasswordReset = async (req, res) => {
         const hashedPassword = await hashPassword(newPassword);
         user.password = hashedPassword;
         await user.save();
-        console.log('User saved:', user); // Log the saved user
 
         // Send email with new password
         const transporter = nodemailer.createTransport({
@@ -54,7 +53,6 @@ const requestPasswordReset = async (req, res) => {
                 pass: process.env.EMAIL_PASS,
             },
         });
-        console.log('Email transporter created'); // Log transporter creation
 
         const mailOptions = {
             to: user.email,
@@ -63,18 +61,14 @@ const requestPasswordReset = async (req, res) => {
             text: `Your password has been reset. Your new temporary password is: ${newPassword}\n\n
                    Please log in and change your password immediately.`,
         };
-        console.log('Mail options set:', mailOptions); // Log mail options
 
         transporter.sendMail(mailOptions, (err) => {
             if (err) {
-                console.error('Error sending email:', err); // Log email sending error
                 return res.status(500).json({ message: 'Error sending email' });
             }
-            console.log('Password reset email sent'); // Log successful email sending
             res.status(200).json({ message: 'Password reset email sent' });
         });
     } catch (err) {
-        console.error('Server error:', err); // Log server error
         res.status(500).json({ message: 'Server error' });
     }
 };
