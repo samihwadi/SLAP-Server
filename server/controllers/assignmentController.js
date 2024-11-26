@@ -1,4 +1,4 @@
-// const Submission = require('../models/Submission');
+const Submission = require('../models/Submission');
 const Assignment = require('../models/Assignment');
 const User = require('../models/User');
 const Course = require('../models/Course');
@@ -34,6 +34,66 @@ const Course = require('../models/Course');
 //         res.status(500).json({ error: 'Server error' });
 //     }
 // };
+
+const submitAssignment = async (req, res) => {
+    const { assignmentId } = req.body;
+    const user = req.user; 
+
+    try {
+        const assignment = await Assignment.findById(assignmentId);
+        if (!assignment) {
+            return res.status(400).json({ error: 'Invalid assignment ID' });
+        }
+
+        if (!req.file) {
+            return res.status(400).json({ error: 'No file uploaded' });
+        }
+
+        // Create file URL
+        const fileUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+
+        // Save submission in the database
+        const submission = new Submission({
+            student: user.id,
+            assignment: assignment._id,
+            fileUrl,
+        });
+
+        await submission.save();
+
+        // Add submission to the assignment
+        assignment.submissions.push(submission._id);
+        await assignment.save();
+
+        res.status(201).json({ message: 'Submission successful', submission });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Server error' });
+    }
+};
+
+const getSubmissions = async (req, res) => {
+    const { assignmentId } = req.params;
+  
+    try {
+      // Fetch only the submissions for the logged-in user
+      const submissions = await Submission.find({
+        assignment: assignmentId,
+        student: req.user.id // Filter by the logged-in user's ID
+      }).populate('student', 'name email');
+  
+      // If no submissions found, return an empty array
+      if (submissions.length === 0) {
+        return res.status(404).json({ message: 'No submissions found for this assignment.' });
+      }
+  
+      res.status(200).json(submissions);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Server error' });
+    }
+  };  
+
 
 const createAssignment = async (req, res) => {
     const { courseCode, title, description, dueDate, instructions } = req.body;
@@ -101,4 +161,4 @@ const getAssignments = async (req, res) => {
 //     }
 // };
 
-module.exports = {createAssignment, getAssignments}
+module.exports = {createAssignment, getAssignments, submitAssignment, getSubmissions}
